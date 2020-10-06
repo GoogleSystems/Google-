@@ -1,0 +1,14 @@
+include ':OpenKeychain'
+include ':nfcsweetspot'
+include ':extern:bouncycastle:core'
+include ':extern:bouncycastle:pg'
+include ':extern:bouncycastle:prov'
+include ':extern:minidns'
+include ':extern:MaterialChipsInput:library'
+
+// Workaround for Android Gradle Plugin 2.0, as described in http://stackoverflow.com/a/36544850
+//include ':extern:openpgp-api-lib:openpgp-api'
+include ':openpgp-api-lib'
+project(':openpgp-api-lib').projectDir = new File('extern/openpgp-api-lib/openpgp-api')
+include ':sshauthentication-api'
+project(':sshauthentication-api').projectDir = new File('sshauthentication-api')
