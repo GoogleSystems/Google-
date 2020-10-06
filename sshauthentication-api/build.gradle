@@ -1,0 +1,47 @@
+apply plugin: 'com.android.library'
+apply plugin: 'bintray-release' // must be applied after your artifact generating plugin (eg. java / com.android.library)
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.3.2'
+        classpath 'com.novoda:bintray-release:0.8.0'
+    }
+}
+
+android {
+    if (project.hasProperty('rootProject.ext.compileSdkVersion')) {
+        compileSdkVersion rootProject.ext.compileSdkVersion
+    } else {
+        compileSdkVersion 27
+    }
+    if (project.hasProperty('rootProject.ext.buildToolsVersion')) {
+        buildToolsVersion rootProject.ext.buildToolsVersion
+    } else {
+        buildToolsVersion '27.0.3'
+    }
+
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+    }
+
+    // Do not abort build if lint finds errors
+    lintOptions {
+        abortOnError false
+    }
+}
+
+publish {
+    userOrg = 'sufficientlysecure'
+    groupId = 'org.sufficientlysecure'
+    artifactId = 'sshauthentication-api'
+    version = '1.0'
+    description = 'The SSH authentication API library provides an interface to using an external authentication provider, such as OpenKeychain, in the SSH authentication layer.'
+    website = 'https://github.com/open-keychain/open-keychain'
+}
