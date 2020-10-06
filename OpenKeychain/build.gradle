@@ -1,0 +1,362 @@
+apply plugin: 'com.android.application'
+apply plugin: 'witness'
+apply plugin: 'jacoco'
+apply plugin: 'com.github.kt3k.coveralls'
+apply plugin: 'com.neenbedankt.android-apt'
+
+dependencies {
+    // NOTE: Always use fixed version codes not dynamic ones, e.g. 0.7.3 instead of 0.7.+, see README for more information
+    // NOTE: libraries are pinned to a specific build, see below
+
+    // from local Android SDK
+    compile 'com.android.support:support-v4:25.0.1'
+    compile 'com.android.support:appcompat-v7:25.0.1'
+    compile 'com.android.support:design:25.0.1'
+    compile 'com.android.support:recyclerview-v7:25.0.1'
+    compile 'com.android.support:cardview-v7:25.0.1'
+    compile 'com.android.support:support-annotations:25.0.1'
+
+    // JCenter etc.
+    compile 'com.journeyapps:zxing-android-embedded:3.4.0'
+    compile 'com.google.zxing:core:3.3.0'
+    compile 'org.commonjava.googlecode.markdown4j:markdown4j:2.2-cj-1.1'
+    compile 'org.ocpsoft.prettytime:prettytime:4.0.1.Final'
+    compile 'org.sufficientlysecure:donations:2.5'
+    compile 'com.squareup.okhttp3:okhttp:3.5.0'
+    compile 'com.squareup.okhttp3:okhttp-urlconnection:3.5.0'
+    compile 'org.apache.james:apache-mime4j-core:0.8.0'
+    compile 'org.apache.james:apache-mime4j-dom:0.8.0'
+    compile 'org.thoughtcrime.ssl.pinning:AndroidPinning:1.0.0'
+
+    // UI
+    compile 'org.sufficientlysecure:html-textview:3.1'
+    compile 'com.splitwise:tokenautocomplete:2.0.8@aar'
+    compile 'com.jpardogo.materialtabstrip:library:1.1.1'
+    compile 'com.getbase:floatingactionbutton:1.10.1'
+    compile 'com.nispok:snackbar:2.11.0'
+    compile 'com.cocosw:bottomsheet:1.3.0@aar'
+
+    // RecyclerView
+    compile 'com.tonicartos:superslim:0.4.13'
+    compile 'com.futuremind.recyclerfastscroll:fastscroll:0.2.4'
+
+    // Material Drawer
+    compile 'com.mikepenz:materialdrawer:5.6.0@aar'
+    compile 'com.mikepenz:fastadapter:1.8.2'
+    compile 'com.mikepenz:materialize:1.0.0'
+    compile 'com.mikepenz:iconics-core:2.8.1@aar'
+    compile 'com.mikepenz:google-material-typeface:2.2.0.3.original@aar'
+    compile 'com.mikepenz:fontawesome-typeface:4.6.0.3@aar'
+    compile 'com.mikepenz:community-material-typeface:1.5.54.2@aar'
+
+    // Nordpol
+    compile 'com.fidesmo:nordpol-android:0.1.22'
+
+    // libs as submodules
+    compile project(':libkeychain')
+    compile project(':openpgp-api-lib')
+    compile project(':extern:bouncycastle:core')
+    compile project(':extern:bouncycastle:pg')
+    compile project(':extern:bouncycastle:prov')
+    compile project(':extern:minidns')
+    compile project(':KeybaseLib')
+    compile project(':safeslinger-exchange')
+
+    // Unit tests in the local JVM with Robolectric
+    // https://developer.android.com/training/testing/unit-testing/local-unit-tests.html
+    // http://robolectric.org/getting-started/
+    // http://www.vogella.com/tutorials/Robolectric/article.html
+    testCompile 'junit:junit:4.12'
+    testCompile ('org.robolectric:robolectric:3.2.2') {
+        exclude group: 'org.bouncycastle', module: 'bcprov-jdk16'
+    }
+    testCompile 'org.mockito:mockito-core:1.10.19'
+
+    // UI testing with Espresso
+    // Force usage of support libs in the test app, since they are internally used by the runner module.
+    // https://github.com/googlesamples/android-testing/blob/master/ui/espresso/BasicSample/app/build.gradle#L28
+    androidTestCompile 'com.android.support:support-annotations:25.0.1'
+    androidTestCompile 'com.android.support:appcompat-v7:25.0.1'
+    androidTestCompile 'com.android.support:design:25.0.1'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
+    androidTestCompile 'com.android.support.test.espresso:espresso-intents:2.2.2'
+    androidTestCompile ('com.android.support.test.espresso:espresso-contrib:2.2.2') {
+        exclude group: 'com.android.support', module: 'appcompat'
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude module: 'recyclerview-v7'
+    }
+
+    compile 'org.glassfish:javax.annotation:10.0-b28'
+    provided    "com.google.auto.value:auto-value:1.4.1"
+    apt         "com.google.auto.value:auto-value:1.4.1"
+    apt         "com.ryanharter.auto.value:auto-value-parcel:0.2.5"
+    compile 'com.ryanharter.auto.value:auto-value-parcel-adapter:0.2.5'
+}
+
+// Output of ./gradlew -q calculateChecksums
+// Comment out the libs referenced as git submodules!
+dependencyVerification {
+    verify = [
+            'com.android.support:support-v4:50da261acc4ca3d2dea9a43106bf65488711ca97b20a4daa095dba381c205c98',
+            'com.android.support:appcompat-v7:7fead560a22ea4b15848ce3000f312ef611fac0953bf90ca8710a72a1f6e36ea',
+            'com.android.support:design:07a72eb68c888b38d7b78e450e1af8a84e571406e0cf911889e0645d5a41f1e4',
+            'com.android.support:recyclerview-v7:803baba7be537ace8c5cb8a775e37547c22a04c4b028833796c45c26ec1deca2',
+            'com.android.support:cardview-v7:50d88fae8cd1076cb90504d36ca5ee9df4018555c8f041bd28f43274c0fc9e1f',
+            'com.android.support:support-annotations:bd94ab42c841db16fb480f4c65d33d297e544655ecc498b37c5cf33a0c5f1968',
+            'com.journeyapps:zxing-android-embedded:2422d83c2c09a7b645f516c8458ececba6a7da47b94e40778d876facf495c660',
+            'com.google.zxing:core:bba7724e02a997cec38213af77133ee8e24b0d5cf5fa7ecbc16a4fa93f11ee0d',
+            'org.commonjava.googlecode.markdown4j:markdown4j:28eb991f702c6d85d6cafd68c24d1ce841d1f5c995c943f25aedb433c0c13f60',
+            'org.ocpsoft.prettytime:prettytime:ef7098d973ae78b57d1a22dc37d3b8a771bf030301300e24055d676b6cdc5e75',
+            'org.sufficientlysecure:donations:2be4183afa5e35263e37346344cfea48681f3c987e6832dd4acde227c13ccad6',
+            'com.squareup.okhttp3:okhttp:eecd834b09d12c3cd568b811522b97012619f7f00378c3c719a1957fac6458ef',
+            'com.squareup.okhttp3:okhttp-urlconnection:ae74d44e656e5bff3b1f6ac9a12be16375bd903ac3ca1f9ce12e98c976b760ee',
+            'org.apache.james:apache-mime4j-core:561987f604911e1870b2b4eabf0b0658d666c66cb1e65fba3e9e4bffe63acab9',
+            'org.apache.james:apache-mime4j-dom:e18717fe6d36f32e5c5f7cbeea1a9bf04645fdabc84e7e8374d9da10fd52e78d',
+            'org.thoughtcrime.ssl.pinning:AndroidPinning:afa1d74e699257fa75cb109ff29bac50726ef269c6e306bdeffe8223cee06ef4',
+            'org.sufficientlysecure:html-textview:ed740adf05cae2373999c7a3047c803183d9807b2cf66162902090d7c112a832',
+            'com.splitwise:tokenautocomplete:f921f83ee26b5265f719b312c30452ef8e219557826c5ce5bf02e29647967939',
+            'com.jpardogo.materialtabstrip:library:4ee2f1211c302b45fb8c627cc5b240dc6b38b7aaaab1b8bffc81663e1b108013',
+            'com.getbase:floatingactionbutton:3edefa511aac4d90794c7b0496aca59cff2eee1e32679247b4f85acbeee05240',
+            'com.nispok:snackbar:46b5eb9d630d329e13c2ce00ee9fb115ffb66c23c72cff32ee97eedd76824c6f',
+            'com.cocosw:bottomsheet:4af6112a7f4cad4e2b70e5fdf1edc39f51275523a0f53011a012837dc103e597',
+            'com.tonicartos:superslim:ca89b5c674660cc6918a8f8fd385065bffeee27983e0d33c7c2f0ad7b34d2d49',
+            'com.futuremind.recyclerfastscroll:fastscroll:ae655201885a9dbb5fabecb4adfefbb23ffdbca26a2b4ea255ec1bf6f214c606',
+            'com.mikepenz:materialdrawer:8bba1428dcef5ad7c2decf49c612ad980b38e2f1031cbd66c152a8a104793929',
+            'com.mikepenz:fastadapter:21d4ecb5c128bcda37b14e7998d799ed52cfc768b72cdf3d5578bb6775769ebd',
+            'com.mikepenz:materialize:942ccf5e2aa1a46803aa884e8dc7bbaf2a9e8e9996a0cf92e3fe2f44a8592ba4',
+            'com.mikepenz:iconics-core:478d7e245098f7c28b5b20a0e6b1e5cb108ef3eaf595af7190bc60f91063aa3d',
+            'com.mikepenz:google-material-typeface:f27c629ba5d2a90ecfbd7f221ff98cd363e1ee6be06b099b82bae490766e14a5',
+            'com.mikepenz:fontawesome-typeface:ee47b7fe97b90412f01f2fcdd78f65a4edb0ab00006f5ef59ed00516baca9309',
+            'com.mikepenz:community-material-typeface:d6035d261c5eba880cd7fe5dcb8cc00b09bfe6d41063b881b759e9897dc7b7c9',
+            'com.fidesmo:nordpol-android:9a992eca347ff7af6e99ff48078954b44b26f26fdc5463139e340234757a24f7',
+//            'OpenKeychain:openpgp-api-lib:13d209e63ffee17d99a40b51841cd9186f3d00a0e5239d41610ea09f2432bf96',
+//            'OpenKeychain:openkeychain-api-lib:231e0a6e7952db759f0ff011c7af7ce4129c2666a3bffbaf733652591fee9cc3',
+//            'OpenKeychain.extern.bouncycastle:core:857cc49a1b8dda5c7cf2e98ce8fcd2526dac2b5e8176efe15c60b368f1a8bb73',
+//            'OpenKeychain.extern.bouncycastle:pg:7234eb61f81ee8affa7b6455cab4cf12b95d38aa314b497b3cb5fa3a8005d9bc',
+//            'OpenKeychain.extern.bouncycastle:prov:7c78ff393d8c112b2a62ea3fb152ff20dfc9ad422e0992922e6dd8b072b7f695',
+//            'OpenKeychain.extern:minidns:a8dd0e0a5145e8b35d0edbc3398eb6f90952763b5fc129675840ee531cf7ec03',
+//            'OpenKeychain:KeybaseLib:fd9827cb8a86ffda84a63242704cf8139dff05df6e0eb749602c510d3fbd20d6',
+//            'OpenKeychain:safeslinger-exchange:83b1e923cc4eb660e78579d75d0bd3564cc9c450bdc1dd38cb0ba41ff8f55c48',
+//            'com.android.databinding:library:def2976cb30dd5abf9f3a35d70c70cfb5485af4fb4ae022f5b9a6e2f8cff6386',
+//            'com.android.databinding:baseLibrary:47cb0d2d4d1aae4af3f860c31540493332a26278c016bbae90d22fdde3b0b83d',
+//            'com.android.databinding:adapters:0dd06349dad760f3cb56769f8e9f46451634be6a8a1bfdb2e88a5ca10afcebd6',
+            'com.android.support:support-compat:d04f15aa5f2ae9e8cb7d025bf02dfd4fd6f6800628ceb107e0589634c9e4e537',
+            'com.android.support:support-media-compat:01cac57af687bed9a6cb4ce803bebd1b7e6b8469c14f1f9ac6b4596637ff73d6',
+            'com.android.support:support-core-utils:632c3750bd991da8b591f24a8916e74ca6063ae7f525f005c96981725c9bf491',
+            'com.android.support:support-core-ui:29205ac978a1839d92be3d32db2385dac10f8688bba649e51650023c76de2f00',
+            'com.android.support:support-fragment:da47261a1d7c3d33e6e911335a7f4ce01135923bb221d3ab84625d005fa1969f',
+            'com.android.support:support-vector-drawable:071ae3695bf8427d3cbfc8791492a3d9c804a4b111aa2a72fbfe7790ea268e5d',
+            'com.android.support:animated-vector-drawable:70443a2857f9968c4e2c27c107657ce2291d774f8a50f03444e12ab637451175',
+            'com.android.support:transition:9fd1e6d27cb70b3c5cd19f842b48bbb05cb4e5c93a22372769c342523393e8ea',
+            'com.squareup.okio:okio:8c5436cadfab36bbd97db5f5c43b7bfdb5bf2f5f894ec8709b1929f14bdd010c',
+            'com.fidesmo:nordpol-core:296e71b12884a9cd28cf00ab908973bbf776a90be1f23ac897380d91604e614d',
+    ]
+}
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 25
+        versionCode 44100
+        versionName "4.4.1"
+        applicationId "org.sufficientlysecure.keychain"
+        // the androidjunitrunner is broken regarding coverage, see here:
+        // https://code.google.com/p/android/issues/detail?id=170607
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        // this workaround runner fixes the coverage problem, BUT doesn't work
+        // with android studio single test execution. use it to generate coverage
+        // data, but keep the other one otherwis
+        // testInstrumentationRunner "org.sufficientlysecure.keychain.JacocoWorkaroundJUnitRunner"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    testOptions.unitTests.all {
+        // log results of tests to console, useful for travis
+        testLogging {
+            events 'passed', 'skipped', 'failed' //, 'standardOut', 'standardError'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules-release.pro'
+
+            // Reference them in the java files with e.g. BuildConfig.ACCOUNT_TYPE.
+            buildConfigField "String", "ACCOUNT_TYPE", "\"org.sufficientlysecure.keychain.account\""
+            buildConfigField "String", "PROVIDER_CONTENT_AUTHORITY", "\"org.sufficientlysecure.keychain.provider\""
+
+            // Reference them in .xml files.
+            resValue "string", "account_type", "org.sufficientlysecure.keychain.account"
+            resValue "string", "provider_content_authority", "org.sufficientlysecure.keychain.provider"
+
+            // Github API
+            buildConfigField "String", "GITHUB_CLIENT_ID", "\"c942cd81844d94e7e41b\""
+            buildConfigField "String", "GITHUB_CLIENT_SECRET", "\"f1dd17e70a0614abbd9310b00a310e23c6c8edff\""
+        }
+
+        debug {
+            // disable ProGuard for faster compile times for debug builds
+            minifyEnabled false
+
+            applicationIdSuffix ".debug"
+
+            // Reference them in the java files with e.g. BuildConfig.ACCOUNT_TYPE.
+            buildConfigField "String", "ACCOUNT_TYPE", "\"org.sufficientlysecure.keychain.debug.account\""
+            buildConfigField "String", "PROVIDER_CONTENT_AUTHORITY", "\"org.sufficientlysecure.keychain.debug.provider\""
+
+            // Reference them in .xml files.
+            resValue "string", "account_type", "org.sufficientlysecure.keychain.debug.account"
+            resValue "string", "provider_content_authority", "org.sufficientlysecure.keychain.debug.provider"
+
+            // Github API
+            buildConfigField "String", "GITHUB_CLIENT_ID", "\"c942cd81844d94e7e41b\""
+            buildConfigField "String", "GITHUB_CLIENT_SECRET", "\"f1dd17e70a0614abbd9310b00a310e23c6c8edff\""
+        }
+
+        // Workaround for http://stackoverflow.com/questions/27909613/cannot-see-parameter-value-in-android-studio-when-breakpoint-is-in-first-line-of
+        debugWithTestCoverage.initWith(debug)
+        debugWithTestCoverage {
+            // Enable code coverage (Jacoco)
+            testCoverageEnabled true
+        }
+    }
+
+    productFlavors {
+        google {
+            buildConfigField "boolean", "DONATIONS_GOOGLE", "true"
+            buildConfigField "String", "GOOGLE_PLAY_PUBKEY", "\"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwX9SOQ/EL4u5pvbYmYMagN5DDenuSaMaVs2cVPzqxMaIHp6/9/nGuzj2/CpcB4ASd2vvfLlE9tZRkPmFTULWc4Sp4OR+JenQufZZr7Y8WGPkFyqd+dOxhIqKKLtH1QuqSyhby3gEMlWzydJY3rHXlH2Bpu65Uroawq76nynnELXNlzsCM231XWgj4HA87qxv9hSWLCpu16wKxZIX3d6mwZLZmGF+xYJAzVr291oDYYl+h6BDoIcAfmQFsv5MexNwBFO+TLVrvL0e5qdGHZxwwD1/68VSY8FxAEfM+yq7jovdVSdcXlJQjZrV5TRDdFWrtEB6njGA3YZWXP6B6MMMoQIDAQAB\""
+            buildConfigField "String", "PAYPAL_USER", "null"
+            buildConfigField "String", "PAYPAL_CURRENCY_CODE", "null"
+            buildConfigField "String", "BITCOIN_ADDRESS", "null"
+            buildConfigField "String", "FLATTR_PROJECT_URL", "null"
+            buildConfigField "String", "FLATTR_URL", "null"
+        }
+        fdroid {
+            buildConfigField "boolean", "DONATIONS_GOOGLE", "false"
+            buildConfigField "String", "GOOGLE_PLAY_PUBKEY", "null"
+            buildConfigField "String", "PAYPAL_USER", "\"dominik@sufficientlysecure.org\""
+            buildConfigField "String", "PAYPAL_CURRENCY_CODE", "\"EUR\""
+            buildConfigField "String", "BITCOIN_ADDRESS", "\"1JZfAKTbTU5LJTkDELhPUF4Xa6VstEZgz6\""
+            buildConfigField "String", "FLATTR_PROJECT_URL", "\"https://www.openkeychain.org\""
+            buildConfigField "String", "FLATTR_URL", "\"flattr.com/submit/auto?fid=4vzg0p&url=https%3A%2F%2Fwww.openkeychain.org\""
+        }
+    }
+
+    variantFilter { variant ->
+        if(variant.buildType.name.equals('debug') && variant.getFlavors().get(0).name.equals('google')) {
+            variant.setIgnore(true);
+        }
+    }
+
+    /*
+     * To sign release build, create file gradle.properties in ~/.gradle/ with this content:
+     *
+     * signingStoreLocation=/home/key.store
+     * signingStorePassword=xxx
+     * signingKeyAlias=alias
+     * signingKeyPassword=xxx
+     */
+    if (project.hasProperty('signingStoreLocation') &&
+            project.hasProperty('signingStorePassword') &&
+            project.hasProperty('signingKeyAlias') &&
+            project.hasProperty('signingKeyPassword')) {
+        println "Found sign properties in gradle.properties! Signing build…"
+
+        signingConfigs {
+            release {
+                storeFile file(signingStoreLocation)
+                storePassword signingStorePassword
+                keyAlias signingKeyAlias
+                keyPassword signingKeyPassword
+            }
+        }
+
+        buildTypes.release.signingConfig = signingConfigs.release
+    } else {
+        buildTypes.release.signingConfig = null
+    }
+
+    // NOTE: Lint is disabled because it slows down builds,
+    // to enable it comment out the code at the bottom of this build.gradle
+    lintOptions {
+        // Do not abort build if lint finds errors
+        abortOnError false
+
+        checkAllWarnings true
+        htmlReport true
+        htmlOutput file('lint-report.html')
+    }
+
+    dexOptions {
+        preDexLibraries true
+        // dexInProcess requires much RAM, which is not available on all dev systems
+        dexInProcess false
+        jumboMode true
+        javaMaxHeapSize "2g"
+    }
+
+    dataBinding {
+        enabled true
+    }
+
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude '.readme'
+    }
+}
+
+task jacocoTestReport(type:JacocoReport, dependsOn: "testFdroidDebugWithTestCoverageUnitTest") {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports"
+
+    classDirectories = fileTree(
+            dir: "${buildDir}/intermediates/classes/fdroid/debugWithTestCoverage",
+            excludes: ['**/R.class',
+                       '**/R$*.class',
+                       '**/*$ViewInjector*.*',
+                       '**/BuildConfig.*',
+                       '**/Manifest*.*',
+                       '**/*Activity*.*',
+                       '**/*Fragment*.*']
+    )
+
+    sourceDirectories = files("${buildDir.parent}/src/main/java")
+    additionalSourceDirs = files([
+            "${buildDir}/generated/source/buildConfig/fdroid/debugWithTestCoverage",
+            "${buildDir}/generated/source/r/fdroid/debugWithTestCoverage"
+    ])
+    executionData = fileTree(dir: "${buildDir}/jacoco", include: "**/*.exec")
+
+    reports {
+        xml.enabled true
+        html.enabled true
+    }
+}
+
+// Fix for: No report file available: [/home/travis/build/open-keychain/open-keychain/OpenKeychain/build/reports/cobertura/coverage.xml, /home/travis/build/open-keychain/open-keychain/OpenKeychain/build/reports/jacoco/test/jacocoTestReport.xml]
+coveralls {
+    jacocoReportPath 'build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml'
+}
+
+// NOTE: This disables Lint!
+tasks.whenTaskAdded { task ->
+    if (task.name.contains('lint')) {
+        task.enabled = false
+    }
+}
+
